@@ -1,0 +1,35 @@
+<?php
+
+use App\Http\Controllers\FilmController;
+use App\Http\Controllers\MapController;
+use App\Http\Controllers\WeatherController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| JSON API Routes
+|--------------------------------------------------------------------------
+|
+| GET  /api/films          - Filmide nimekiri (search, genre, sort, limit)
+| GET  /api/films/{film}   - Üksiku filmi andmed
+| GET  /api/markers        - Kõik kaardile lisatud markerid
+| GET  /api/weather        - Ilmaandmed linna järgi (?city=Tallinn)
+|
+*/
+
+Route::prefix('v1')->group(function () {
+
+    // Filmide API
+    Route::get('/films',        [FilmController::class, 'apiIndex'])->name('api.films.index');
+    Route::get('/films/{film}', [FilmController::class, 'apiShow'])->name('api.films.show');
+
+    // Markerite API
+    Route::get('/markers',      [MapController::class, 'apiMarkers'])->name('api.markers.index');
+
+    // Ilmaandmete API
+    Route::get('/weather',      [WeatherController::class, 'apiWeather'])->name('api.weather');
+});
+
+// Backwards-compatible ilma alias
+Route::get('/films',        [FilmController::class, 'apiIndex']);
+Route::get('/films/{film}', [FilmController::class, 'apiShow']);

@@ -30,6 +30,9 @@
                             <NavLink :href="route('api-explorer.index')" :active="route().current('api-explorer.*')">
                                 🎬 Filmid API
                             </NavLink>
+                            <NavLink v-if="$page.props.auth.user" :href="route('api.token')" :active="route().current('api.token*')">
+                                🔑 API Võti
+                            </NavLink>
                         </div>
                     </div>
 
@@ -85,6 +88,7 @@
                     <MobileNavLink :href="route('blog.index')">📝 Blogi</MobileNavLink>
                     <MobileNavLink :href="route('shop.index')">🛒 Pood</MobileNavLink>
                     <MobileNavLink :href="route('api-explorer.index')">🎬 Filmid API</MobileNavLink>
+                    <MobileNavLink v-if="$page.props.auth.user" :href="route('api.token')">🔑 API Võti</MobileNavLink>
                 </div>
             </div>
         </nav>

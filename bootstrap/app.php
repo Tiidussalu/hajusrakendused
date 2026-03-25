@@ -13,6 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Apply CORS to all API routes so /api/v1/* is reachable from
+        // the Chrome extension (chrome-extension://) and external clients.
+        $middleware->api(prepend: [
+            \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
         ]);

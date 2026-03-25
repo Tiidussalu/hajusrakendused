@@ -10,7 +10,7 @@
                     <h1 class="text-3xl font-bold text-gray-900">🎬 Filmide API</h1>
                     <p class="text-gray-500 mt-1">{{ films.total }} filmi andmebaasis · JSON API: <code class="bg-gray-100 px-1 rounded text-sm">/api/v1/films</code></p>
                 </div>
-                <Link :href="route('api-explorer.create')" class="btn-primary">
+                <Link v-if="$page.props.auth.user" :href="route('api-explorer.create')" class="btn-primary">
                     ➕ Lisa film
                 </Link>
             </div>
@@ -19,7 +19,7 @@
             <div class="card p-5 mb-6 bg-gray-900 text-green-400 font-mono text-sm overflow-x-auto">
                 <p class="text-gray-400 text-xs mb-2"># API päringute näited</p>
                 <p>GET /api/v1/films</p>
-                <p>GET /api/v1/films?search=nolan&genre=Põnevik&sort=-rating&limit=5</p>
+                <p>GET /api/v1/films?search=nolan&amp;genre=Põnevik&amp;sort=-rating&amp;limit=5</p>
                 <p>GET /api/v1/films/{id}</p>
             </div>
 
@@ -109,7 +109,10 @@
             <!-- Empty state -->
             <div v-else class="text-center py-16 text-gray-400">
                 <p class="text-5xl mb-4">🎬</p>
-                <p>Filme ei leitud. <Link :href="route('api-explorer.create')" class="text-primary-600 underline">Lisa esimene film!</Link></p>
+                <p>Filme ei leitud.
+                    <Link v-if="$page.props.auth.user" :href="route('api-explorer.create')" class="text-primary-600 underline">Lisa esimene film!</Link>
+                    <span v-else class="text-gray-400">Logi sisse filmide lisamiseks.</span>
+                </p>
             </div>
 
             <!-- Pagination -->
@@ -130,7 +133,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({
@@ -138,6 +141,9 @@ const props = defineProps({
     filters: Object,
     genres:  Array,
 });
+
+// Use Inertia's usePage() — the correct way to access shared props
+const page = usePage();
 
 const filters = ref({ ...props.filters });
 let searchTimer = null;
@@ -165,8 +171,9 @@ function goToPage(page) {
     router.get(route('api-explorer.index'), { ...filters.value, page });
 }
 
+// Fixed: use usePage() instead of broken window.__inertia hack
 function canDelete(film) {
-    const user = window?.__inertia?.page?.props?.auth?.user;
+    const user = page.props.auth?.user;
     return user && (user.id === film.user_id || user.is_admin);
 }
 

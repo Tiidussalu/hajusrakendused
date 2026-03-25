@@ -148,8 +148,16 @@ const cartOpen = ref(false);
 const activeCategory = ref(null);
 const quantities = ref({});
 
-// Initialize cart from sessionStorage
-const cart = ref(JSON.parse(sessionStorage.getItem('cart') || '[]'));
+// Initialize cart from sessionStorage — safe fallback if empty/corrupt
+function loadCartFromStorage() {
+    try {
+        return JSON.parse(sessionStorage.getItem('cart') || '[]');
+    } catch {
+        return [];
+    }
+}
+
+const cart = ref(loadCartFromStorage());
 
 const categories = computed(() => [...new Set(props.products.map(p => p.category))].sort());
 const filteredProducts = computed(() =>
@@ -170,6 +178,8 @@ function addToCart(product) {
     } else {
         cart.value.push({ ...product, qty });
     }
+    // Reset per-card quantity selector back to 1
+    quantities.value[product.id] = 1;
     saveCartToStorage();
     cartOpen.value = true;
 }

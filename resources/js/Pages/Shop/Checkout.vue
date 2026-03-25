@@ -27,14 +27,17 @@
                             <div>
                                 <label class="form-label">Eesnimi *</label>
                                 <input v-model="form.first_name" type="text" class="form-input" required />
+                                <p v-if="formErrors.first_name" class="text-red-500 text-xs mt-1">{{ formErrors.first_name }}</p>
                             </div>
                             <div>
                                 <label class="form-label">Perenimi *</label>
                                 <input v-model="form.last_name" type="text" class="form-input" required />
+                                <p v-if="formErrors.last_name" class="text-red-500 text-xs mt-1">{{ formErrors.last_name }}</p>
                             </div>
                             <div>
                                 <label class="form-label">E-post *</label>
                                 <input v-model="form.email" type="email" class="form-input" required />
+                                <p v-if="formErrors.email" class="text-red-500 text-xs mt-1">{{ formErrors.email }}</p>
                             </div>
                             <div>
                                 <label class="form-label">Telefon</label>
@@ -57,7 +60,7 @@
                     <button
                         @click="pay"
                         :disabled="paying || !stripeReady"
-                        class="btn-primary w-full py-3 text-base"
+                        class="btn-primary w-full py-3 text-base disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                         <span v-if="paying" class="flex items-center justify-center gap-2">
                             <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
@@ -112,10 +115,20 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({ stripeKey: String });
 
-const cart = ref(JSON.parse(sessionStorage.getItem('cart') || '[]'));
+// Safe cart load with error handling
+function loadCartFromStorage() {
+    try {
+        return JSON.parse(sessionStorage.getItem('cart') || '[]');
+    } catch {
+        return [];
+    }
+}
+
+const cart = ref(loadCartFromStorage());
 const cartTotal = computed(() => cart.value.reduce((s, i) => s + i.price * i.qty, 0));
 
 const form = ref({ first_name: '', last_name: '', email: '', phone: '' });
+const formErrors = ref({});
 const paying = ref(false);
 const stripeError = ref('');
 const stripeReady = ref(false);
@@ -126,11 +139,16 @@ let cardElement = null;
 onMounted(async () => {
     if (cart.value.length === 0) return;
 
-    // Load Stripe.js
+    // Load Stripe.js dynamically
     const script = document.createElement('script');
     script.src = 'https://js.stripe.com/v3/';
     script.onload = () => {
-        stripe = Stripe(props.stripeKey || 'pk_test_placeholder');
+        const key = props.stripeKey;
+        if (!key || key === 'your_stripe_publishable_key_here') {
+            stripeError.value = 'Stripe võtit ei ole seadistatud (.env STRIPE_KEY puudub).';
+            return;
+        }
+        stripe = Stripe(key);
         const elements = stripe.elements();
         cardElement = elements.create('card', {
             style: {
@@ -141,12 +159,26 @@ onMounted(async () => {
         cardElement.on('ready', () => { stripeReady.value = true; });
         cardElement.on('change', (e) => { stripeError.value = e.error?.message || ''; });
     };
+    script.onerror = () => {
+        stripeError.value = 'Stripe.js laadimine ebaõnnestus. Kontrolli internetiühendust.';
+    };
     document.head.appendChild(script);
 });
 
+function validateForm() {
+    formErrors.value = {};
+    if (!form.value.first_name.trim()) formErrors.value.first_name = 'Eesnimi on kohustuslik.';
+    if (!form.value.last_name.trim())  formErrors.value.last_name  = 'Perenimi on kohustuslik.';
+    if (!form.value.email.trim())      formErrors.value.email      = 'E-post on kohustuslik.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email))
+        formErrors.value.email = 'Vigane e-posti aadress.';
+    return Object.keys(formErrors.value).length === 0;
+}
+
 async function pay() {
-    if (!form.value.first_name || !form.value.last_name || !form.value.email) {
-        stripeError.value = 'Palun täida kõik kohustuslikud väljad.';
+    if (!validateForm()) return;
+    if (!stripe || !cardElement) {
+        stripeError.value = 'Stripe ei ole veel laaditud. Palun oota hetk.';
         return;
     }
 
@@ -154,13 +186,16 @@ async function pay() {
     stripeError.value = '';
 
     try {
-        // 1. Create PaymentIntent on server
+        // 1. Get CSRF token from meta tag (added to app.blade.php)
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+        // 2. Create PaymentIntent on the server
         const res = await fetch(route('shop.payment-intent'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
                 'Accept': 'application/json',
+                ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}),
             },
             body: JSON.stringify({
                 ...form.value,
@@ -171,9 +206,16 @@ async function pay() {
             }),
         });
 
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            stripeError.value = err.message || `Serveri viga (${res.status}). Proovi uuesti.`;
+            paying.value = false;
+            return;
+        }
+
         const { clientSecret, orderId } = await res.json();
 
-        // 2. Confirm with Stripe
+        // 3. Confirm payment with Stripe
         const { paymentIntent, error } = await stripe.confirmCardPayment(clientSecret, {
             payment_method: {
                 card: cardElement,
@@ -195,6 +237,7 @@ async function pay() {
             router.get(route('shop.success'), { order_id: orderId });
         }
     } catch (e) {
+        console.error('Payment error:', e);
         stripeError.value = 'Tehniline viga. Palun proovi uuesti.';
         paying.value = false;
     }

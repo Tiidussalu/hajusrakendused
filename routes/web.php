@@ -7,6 +7,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\WeatherController;
+use App\Http\Controllers\ApiTokenController;
 use Illuminate\Support\Facades\Route;
 
 // ── Home ──────────────────────────────────────────────────────
@@ -32,35 +33,30 @@ Route::post('/ilm/otsi',  [WeatherController::class, 'search'])->name('weather.s
 Route::get('/kaart', [MapController::class, 'index'])->name('map.index');
 
 Route::prefix('map/markers')->name('map.markers.')->group(function () {
-    Route::post('/',         [MapController::class, 'store'])->name('store');
-    Route::put('/{marker}',  [MapController::class, 'update'])->name('update');
+    Route::post('/',          [MapController::class, 'store'])->name('store');
+    Route::put('/{marker}',   [MapController::class, 'update'])->name('update');
     Route::delete('/{marker}',[MapController::class, 'destroy'])->name('destroy');
 });
 
 // ── 3. Blogi ──────────────────────────────────────────────────
-// Anyone: view posts + add comments
 Route::get('/blogi', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blogi/{post:slug}', [BlogController::class, 'show'])->name('blog.show');
 Route::post('/blogi/{post:slug}/kommentaar', [BlogController::class, 'storeComment'])->name('blog.comment.store');
 
-// Logged-in users: create + edit own posts
 Route::middleware('auth')->group(function () {
     Route::get('/blogi/uus/postitus',      [BlogController::class, 'create'])->name('blog.create');
     Route::post('/blogi',                  [BlogController::class, 'store'])->name('blog.store');
     Route::get('/blogi/{post:slug}/muuda', [BlogController::class, 'edit'])->name('blog.edit');
     Route::put('/blogi/{post:slug}',       [BlogController::class, 'update'])->name('blog.update');
-
-    // Admin only: delete comments
     Route::delete('/kommentaar/{comment}', [BlogController::class, 'destroyComment'])->name('blog.comment.destroy');
 });
 
 // ── 4. Pood ───────────────────────────────────────────────────
-Route::get('/pood',               [ShopController::class, 'index'])->name('shop.index');
-Route::get('/pood/kassa',         [ShopController::class, 'checkout'])->name('shop.checkout');
+Route::get('/pood',                [ShopController::class, 'index'])->name('shop.index');
+Route::get('/pood/kassa',          [ShopController::class, 'checkout'])->name('shop.checkout');
 Route::post('/pood/payment-intent',[ShopController::class, 'createPaymentIntent'])->name('shop.payment-intent');
-Route::get('/pood/edu',           [ShopController::class, 'paymentSuccess'])->name('shop.success');
+Route::get('/pood/edu',            [ShopController::class, 'paymentSuccess'])->name('shop.success');
 
-// Stripe webhook (CSRF-exempt)
 Route::post('/stripe/webhook', [ShopController::class, 'stripeWebhook'])
     ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class)
     ->name('stripe.webhook');
@@ -70,6 +66,13 @@ Route::get('/filmid',      [FilmController::class, 'index'])->name('api-explorer
 Route::get('/filmid/lisa', [FilmController::class, 'create'])->name('api-explorer.create');
 
 Route::middleware('auth')->group(function () {
-    Route::post('/filmid',           [FilmController::class, 'store'])->name('api-explorer.store');
-    Route::delete('/filmid/{film}',  [FilmController::class, 'destroy'])->name('api-explorer.destroy');
+    Route::post('/filmid',          [FilmController::class, 'store'])->name('api-explorer.store');
+    Route::delete('/filmid/{film}', [FilmController::class, 'destroy'])->name('api-explorer.destroy');
+});
+
+// ── 6. API Token haldus ───────────────────────────────────────
+Route::middleware('auth')->group(function () {
+    Route::get('/api-token',          [ApiTokenController::class, 'show'])->name('api.token');
+    Route::post('/api-token/generate',[ApiTokenController::class, 'generate'])->name('api.token.generate');
+    Route::post('/api-token/revoke',  [ApiTokenController::class, 'revoke'])->name('api.token.revoke');
 });

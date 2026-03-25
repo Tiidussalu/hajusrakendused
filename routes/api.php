@@ -10,10 +10,13 @@ use Illuminate\Support\Facades\Route;
 | JSON API Routes
 |--------------------------------------------------------------------------
 |
-| GET  /api/films          - Filmide nimekiri (search, genre, sort, limit)
-| GET  /api/films/{film}   - Üksiku filmi andmed
-| GET  /api/markers        - Kõik kaardile lisatud markerid
-| GET  /api/weather        - Ilmaandmed linna järgi (?city=Tallinn)
+| GET  /api/v1/films          - Filmide nimekiri (search, genre, sort, limit)
+| GET  /api/v1/films/{film}   - Üksiku filmi andmed
+| GET  /api/v1/markers        - Kõik kaardile lisatud markerid
+| GET  /api/v1/weather        - Ilmaandmed linna järgi (?city=Tallinn)
+|
+| Autentimine: lisa päisele  Authorization: Bearer <sinu-api-võti>
+| või query parameetrile:    ?api_token=<sinu-api-võti>
 |
 */
 
@@ -30,6 +33,6 @@ Route::prefix('v1')->group(function () {
     Route::get('/weather',      [WeatherController::class, 'apiWeather'])->name('api.weather');
 });
 
-// Backwards-compatible ilma alias
+// Backwards-compatible aliases
 Route::get('/films',        [FilmController::class, 'apiIndex']);
 Route::get('/films/{film}', [FilmController::class, 'apiShow']);

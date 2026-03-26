@@ -5,30 +5,32 @@ namespace App\Http\Controllers;
 use App\Models\Film;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class FilmController extends Controller
 {
-    private int $cacheTtl = 300; // 5 minutit
+    private int $cacheTtl = 300; // 5 minutes
 
     // ── Web views ─────────────────────────────────────────────
 
+    /**
+     * Merged page: films list + API docs + API token management.
+     */
     public function index(Request $request): Response
     {
         $films = $this->getFilmsQuery($request)->paginate(12)->withQueryString();
 
-        return Inertia::render('Api/Index', [
-            'films'   => $films,
-            'filters' => $request->only(['search', 'genre', 'sort', 'limit']),
-            'genres'  => Film::distinct()->pluck('genre')->filter()->sort()->values(),
-        ]);
-    }
+        $user = $request->user();
 
-    public function create(): Response
-    {
-        return Inertia::render('Api/Create');
+        return Inertia::render('Films/Index', [
+            'films'    => $films,
+            'filters'  => $request->only(['search', 'genre', 'sort', 'limit']),
+            'genres'   => Film::distinct()->pluck('genre')->filter()->sort()->values(),
+            // API token state (null-safe for guests)
+            'hasToken' => $user ? !is_null($user->api_token) : false,
+            'newToken' => session('new_api_token'),
+        ]);
     }
 
     public function store(Request $request)
@@ -50,7 +52,7 @@ class FilmController extends Controller
 
         Cache::forget('films_api_all');
 
-        return redirect()->route('api-explorer.index')
+        return redirect()->route('films.index')
             ->with('success', "Film \"{$film->title}\" lisatud!");
     }
 
@@ -67,13 +69,13 @@ class FilmController extends Controller
     // ── JSON API ──────────────────────────────────────────────
 
     /**
-     * GET /api/films
+     * GET /api/v1/films
      *
      * Query params:
-     *   search  – otsi pealkirja, režissööri järgi
-     *   genre   – filtreeri žanri järgi
-     *   sort    – title|year|rating|created_at  (eesliide - = laskuv)
-     *   limit   – max kirjete arv (1-100, vaikimisi 20)
+     *   search  – search by title, director
+     *   genre   – filter by genre
+     *   sort    – title|year|rating|created_at  (prefix - = descending)
+     *   limit   – max records (1-100, default 20)
      */
     public function apiIndex(Request $request)
     {
@@ -108,7 +110,6 @@ class FilmController extends Controller
     {
         $query = Film::with('user:id,name');
 
-        // Otsing
         if ($request->search) {
             $query->where(function ($q) use ($request) {
                 $q->where('title', 'like', "%{$request->search}%")
@@ -117,12 +118,10 @@ class FilmController extends Controller
             });
         }
 
-        // Žanri filter
         if ($request->genre) {
             $query->where('genre', $request->genre);
         }
 
-        // Sorteerimine
         $sort = $request->sort ?? '-created_at';
         $dir  = str_starts_with($sort, '-') ? 'desc' : 'asc';
         $col  = ltrim($sort, '-');

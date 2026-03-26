@@ -27,11 +27,8 @@
                             <NavLink :href="route('shop.index')" :active="route().current('shop.*')">
                                 🛒 Pood
                             </NavLink>
-                            <NavLink :href="route('api-explorer.index')" :active="route().current('api-explorer.*')">
-                                🎬 Filmid API
-                            </NavLink>
-                            <NavLink v-if="$page.props.auth.user" :href="route('api.token')" :active="route().current('api.token*')">
-                                🔑 API Võti
+                            <NavLink :href="route('films.index')" :active="route().current('films.*')">
+                                🎬 Filmid & API
                             </NavLink>
                         </div>
                     </div>
@@ -87,27 +84,26 @@
                     <MobileNavLink :href="route('map.index')">🗺️ Kaart</MobileNavLink>
                     <MobileNavLink :href="route('blog.index')">📝 Blogi</MobileNavLink>
                     <MobileNavLink :href="route('shop.index')">🛒 Pood</MobileNavLink>
-                    <MobileNavLink :href="route('api-explorer.index')">🎬 Filmid API</MobileNavLink>
-                    <MobileNavLink v-if="$page.props.auth.user" :href="route('api.token')">🔑 API Võti</MobileNavLink>
+                    <MobileNavLink :href="route('films.index')">🎬 Filmid & API</MobileNavLink>
                 </div>
             </div>
         </nav>
 
         <!-- Flash Messages -->
-        <div v-if="$page.props.flash?.success || $page.props.flash?.error" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div v-if="flashVisible && ($page.props.flash?.success || $page.props.flash?.error)" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
             <div
                 v-if="$page.props.flash?.success"
                 class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg flex items-center justify-between"
             >
                 <span>✅ {{ $page.props.flash.success }}</span>
-                <button @click="dismissFlash" class="text-green-600 hover:text-green-800">✕</button>
+                <button @click="flashVisible = false" class="text-green-600 hover:text-green-800">✕</button>
             </div>
             <div
                 v-if="$page.props.flash?.error"
                 class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-center justify-between"
             >
                 <span>❌ {{ $page.props.flash.error }}</span>
-                <button @click="dismissFlash" class="text-red-600 hover:text-red-800">✕</button>
+                <button @click="flashVisible = false" class="text-red-600 hover:text-red-800">✕</button>
             </div>
         </div>
 
@@ -137,12 +133,12 @@
                         <p class="text-xs text-gray-500">E-pood Stripe makselahendusega.</p>
                     </div>
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-700 mb-2">🎬 Filmid API</h3>
-                        <p class="text-xs text-gray-500">JSON API filmide haldamiseks.</p>
+                        <h3 class="text-sm font-semibold text-gray-700 mb-2">🎬 Filmid & API</h3>
+                        <p class="text-xs text-gray-500">JSON API filmide haldamiseks + võtmehaldus.</p>
                     </div>
                 </div>
                 <div class="mt-6 pt-6 border-t border-gray-100 text-center text-xs text-gray-400">
-                    © {{ new Date().getFullYear() }} Hajusrakendus · Laravel 13 + Vue 3 + Inertia.js
+                    © {{ new Date().getFullYear() }} Hajusrakendus · Laravel + Vue 3 + Inertia.js
                 </div>
             </div>
         </footer>
@@ -156,9 +152,5 @@ import NavLink from '@/Components/NavLink.vue';
 import MobileNavLink from '@/Components/MobileNavLink.vue';
 
 const mobileMenuOpen = ref(false);
-const flashVisible = ref(true);
-
-function dismissFlash() {
-    flashVisible.value = false;
-}
+const flashVisible   = ref(true);
 </script>

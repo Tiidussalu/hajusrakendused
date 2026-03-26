@@ -61,18 +61,20 @@ Route::post('/stripe/webhook', [ShopController::class, 'stripeWebhook'])
     ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class)
     ->name('stripe.webhook');
 
-// ── 5. Filmid (API explorer) ──────────────────────────────────
-Route::get('/filmid',      [FilmController::class, 'index'])->name('api-explorer.index');
-Route::get('/filmid/lisa', [FilmController::class, 'create'])->name('api-explorer.create');
+// ── 5. Filmid & API (merged page) ─────────────────────────────
+Route::get('/filmid', [FilmController::class, 'index'])->name('films.index');
 
 Route::middleware('auth')->group(function () {
-    Route::post('/filmid',          [FilmController::class, 'store'])->name('api-explorer.store');
-    Route::delete('/filmid/{film}', [FilmController::class, 'destroy'])->name('api-explorer.destroy');
+    Route::post('/filmid',          [FilmController::class, 'store'])->name('films.store');
+    Route::delete('/filmid/{film}', [FilmController::class, 'destroy'])->name('films.destroy');
+
+    // API token management (handled within the films page)
+    Route::post('/api-token/generate', [ApiTokenController::class, 'generate'])->name('api.token.generate');
+    Route::post('/api-token/revoke',   [ApiTokenController::class, 'revoke'])->name('api.token.revoke');
 });
 
-// ── 6. API Token haldus ───────────────────────────────────────
-Route::middleware('auth')->group(function () {
-    Route::get('/api-token',          [ApiTokenController::class, 'show'])->name('api.token');
-    Route::post('/api-token/generate',[ApiTokenController::class, 'generate'])->name('api.token.generate');
-    Route::post('/api-token/revoke',  [ApiTokenController::class, 'revoke'])->name('api.token.revoke');
-});
+// Backward-compat redirects for old routes
+Route::redirect('/api-token',          '/filmid')->name('api.token');
+Route::redirect('/filmid/lisa',        '/filmid');
+Route::redirect('/api-explorer',       '/filmid');
+Route::redirect('/api-explorer/index', '/filmid');

@@ -7,7 +7,7 @@
             <div class="max-w-4xl mx-auto text-center">
                 <h1 class="text-5xl font-bold mb-4 leading-tight">Hajusrakendus</h1>
                 <p class="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-                    Laravel 13 · Vue 3 · Inertia.js · Tailwind CSS
+                    Laravel · Vue 3 · Inertia.js · Tailwind CSS
                 </p>
                 <div class="flex flex-wrap justify-center gap-3">
                     <Link :href="route('weather.index')" class="bg-white text-primary-700 font-semibold px-6 py-3 rounded-xl hover:bg-gray-50 transition">
@@ -71,10 +71,10 @@
                     <span class="mt-3 inline-block text-primary-600 text-sm font-medium">Ava →</span>
                 </Link>
 
-                <Link :href="route('api-explorer.index')" class="card p-6 hover:shadow-lg transition-shadow group">
+                <Link :href="route('films.index')" class="card p-6 hover:shadow-lg transition-shadow group">
                     <div class="text-4xl mb-3">🎬</div>
-                    <h3 class="font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">Filmide API</h3>
-                    <p class="text-sm text-gray-500">JSON REST API filmidele. Filtreerimine, sorteerimine, otsing, vahemälu, limit parameeter.</p>
+                    <h3 class="font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">Filmid & API</h3>
+                    <p class="text-sm text-gray-500">JSON REST API filmidele. Filtreerimine, sorteerimine, otsing, vahemälu. API võtmehaldus sisseehitatud.</p>
                     <span class="mt-3 inline-block text-primary-600 text-sm font-medium">Ava →</span>
                 </Link>
 

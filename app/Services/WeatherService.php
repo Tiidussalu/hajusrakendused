@@ -15,6 +15,10 @@ class WeatherService
     public function __construct()
     {
         $this->apiKey = config('services.openweather.key');
+
+        if (empty($this->apiKey)) {
+            \Log::error('OpenWeatherMap API key is not configured');
+        }
     }
 
     public function getCurrentWeather(string $city, string $units = 'metric'): array
@@ -90,6 +94,10 @@ class WeatherService
 
     public function formatWeatherData(array $data): array
     {
+        if (empty($data) || isset($data['cod']) && $data['cod'] != 200) {
+            throw new \Exception('Invalid weather data response from API');
+        }
+
         return [
             'city'        => $data['name'] ?? 'Tundmatu',
             'country'     => $data['sys']['country'] ?? '',

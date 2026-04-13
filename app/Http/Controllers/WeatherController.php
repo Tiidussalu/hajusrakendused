@@ -27,6 +27,11 @@ class WeatherController extends Controller
             $rawForecast = $this->weatherService->getForecast($city);
             $forecast = $this->weatherService->formatForecastData($rawForecast);
         } catch (\Exception $e) {
+            \Log::error("Weather fetch error for city: {$city}", [
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             $error = "Linna '{$city}' ilmaandmeid ei leitud. Kontrolli linnanime.";
         }
 

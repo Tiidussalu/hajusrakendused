@@ -39,6 +39,12 @@
                     📡 API docs
                 </button>
                 <button
+                    @click="activeTab = 'external'"
+                    :class="['px-5 py-2 rounded-lg text-sm font-medium transition', activeTab === 'external' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700']"
+                >
+                    🌐 Väliste API
+                </button>
+                <button
                     v-if="$page.props.auth.user"
                     @click="activeTab = 'token'"
                     :class="['px-5 py-2 rounded-lg text-sm font-medium transition', activeTab === 'token' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700']"
@@ -231,6 +237,207 @@
                 </div>
             </div>
 
+            <!-- ── TAB: VÄLISTE API ── -->
+            <div v-show="activeTab === 'external'">
+                <!-- Examples -->
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">📚 Näited</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Example 1: Sharks -->
+                        <div class="card p-4 border-2 border-blue-200 hover:border-blue-400 transition">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-bold text-gray-900">🦈 Shark'ide API</h3>
+                                    <p class="text-xs text-gray-500">Sinu sõbra API</p>
+                                </div>
+                                <button @click="loadExample('https://hajusrakendused-main-pm8ido.laravel.cloud/api/sharks', 'xb0RGUxrOUV5JOcE0CeQNU27V0U1WfU2FGgv8U1z', 'header')" class="btn-primary text-xs px-3 py-1">
+                                    Kasuta
+                                </button>
+                            </div>
+                            <div class="space-y-1 text-xs text-gray-600">
+                                <p><span class="font-semibold">URL:</span> hajusrakendused-main-pm8ido.laravel.cloud/api/sharks</p>
+                                <p><span class="font-semibold">Auth:</span> X-API-Key</p>
+                            </div>
+                        </div>
+
+                        <!-- Example 2: Rick & Morty -->
+                        <div class="card p-4 border-2 border-green-200 hover:border-green-400 transition">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-bold text-gray-900">🎬 Rick & Morty</h3>
+                                    <p class="text-xs text-gray-500">Avalik API</p>
+                                </div>
+                                <button @click="loadExample('https://rickandmortyapi.com/api/character', '', 'none')" class="btn-primary text-xs px-3 py-1">
+                                    Kasuta
+                                </button>
+                            </div>
+                            <div class="space-y-1 text-xs text-gray-600">
+                                <p><span class="font-semibold">URL:</span> rickandmortyapi.com/api/character</p>
+                                <p><span class="font-semibold">Auth:</span> Pole nõutav</p>
+                            </div>
+                        </div>
+
+                        <!-- Example 3: PokéAPI -->
+                        <div class="card p-4 border-2 border-purple-200 hover:border-purple-400 transition">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-bold text-gray-900">🎮 PokéAPI</h3>
+                                    <p class="text-xs text-gray-500">Avalik API</p>
+                                </div>
+                                <button @click="loadExample('https://pokeapi.co/api/v2/pokemon?limit=20', '', 'none')" class="btn-primary text-xs px-3 py-1">
+                                    Kasuta
+                                </button>
+                            </div>
+                            <div class="space-y-1 text-xs text-gray-600">
+                                <p><span class="font-semibold">URL:</span> pokeapi.co/api/v2/pokemon</p>
+                                <p><span class="font-semibold">Auth:</span> Pole nõutav</p>
+                            </div>
+                        </div>
+
+                        <!-- Example 4: Random Users -->
+                        <div class="card p-4 border-2 border-orange-200 hover:border-orange-400 transition">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-bold text-gray-900">👥 Random Users</h3>
+                                    <p class="text-xs text-gray-500">Avalik API</p>
+                                </div>
+                                <button @click="loadExample('https://randomuser.me/api/?results=10', '', 'none')" class="btn-primary text-xs px-3 py-1">
+                                    Kasuta
+                                </button>
+                            </div>
+                            <div class="space-y-1 text-xs text-gray-600">
+                                <p><span class="font-semibold">URL:</span> randomuser.me/api</p>
+                                <p><span class="font-semibold">Auth:</span> Pole nõutav</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Section -->
+                <div class="card p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">🦈 Välise API Andmete Tester</h2>
+                    <p class="text-sm text-gray-600 mb-4">Sisesta suvaline API otspunkt ja võti - hankige andmeid ükskõik millest:</p>
+
+                    <!-- API URL Input -->
+                    <div class="mb-4">
+                        <label class="form-label text-xs">API Otspunkt (URL) *</label>
+                        <input
+                            v-model="externalApiUrl"
+                            type="url"
+                            class="form-input"
+                            placeholder="https://api.näide.ee/andmed"
+                            @keyup.enter="fetchExternalData"
+                        />
+                    </div>
+
+                    <!-- API Key Input -->
+                    <div class="mb-4">
+                        <label class="form-label text-xs">API Võti</label>
+                        <input
+                            v-model="externalApiKey"
+                            type="password"
+                            class="form-input"
+                            placeholder="Sisesta API võti..."
+                            @keyup.enter="fetchExternalData"
+                        />
+                    </div>
+
+                    <!-- Auth Method -->
+                    <div class="mb-4">
+                        <label class="form-label text-xs">Autentimise Meetod</label>
+                        <select v-model="externalAuthMethod" class="form-input">
+                            <option value="none">Pole nõutav (avalik API)</option>
+                            <option value="header">Päises (X-API-Key)</option>
+                            <option value="bearer">Päises (Authorization: Bearer)</option>
+                            <option value="custom_header">Kohandatud päis</option>
+                            <option value="query">Query parameeter (api_key=...)</option>
+                        </select>
+                    </div>
+
+                    <!-- Custom Header Name (if needed) -->
+                    <div v-if="externalAuthMethod === 'custom_header'" class="mb-4">
+                        <label class="form-label text-xs">Päise Nimi</label>
+                        <input
+                            v-model="externalAuthHeaderName"
+                            type="text"
+                            class="form-input"
+                            placeholder="Nt: Authorization"
+                        />
+                    </div>
+
+                    <!-- Fetch Button -->
+                    <div class="flex gap-3 mb-6">
+                        <button
+                            @click="fetchExternalData"
+                            :disabled="!externalApiUrl || externalLoading"
+                            class="btn-primary"
+                        >
+                            {{ externalLoading ? '⏳ Laadib...' : '🚀 Hangi andmed' }}
+                        </button>
+                        <button
+                            v-if="externalData.length"
+                            @click="clearExternalData"
+                            class="btn-secondary"
+                        >
+                            🗑️ Tühista
+                        </button>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div v-if="externalError" class="p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
+                        <p class="text-sm text-red-700">
+                            <strong>❌ Viga:</strong> {{ externalError }}
+                        </p>
+                    </div>
+
+                    <!-- Success Message -->
+                    <div v-if="externalData.length" class="p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
+                        <p class="text-sm text-green-700">
+                            <strong>✅</strong> Laaditud {{ externalData.length }} kirjet
+                        </p>
+                    </div>
+
+                    <!-- Results Grid -->
+                    <div v-if="externalData.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div
+                            v-for="(item, index) in externalData"
+                            :key="index"
+                            class="card hover:shadow-lg transition-shadow p-4"
+                        >
+                            <!-- Image (if exists) -->
+                            <div v-if="item.image || item.image_url || item.picture" class="mb-3 h-40 overflow-hidden rounded-lg bg-gray-800">
+                                <img
+                                    :src="getImageUrl(item)"
+                                    :alt="getItemTitle(item)"
+                                    class="w-full h-full object-cover"
+                                />
+                            </div>
+
+                            <!-- Title -->
+                            <h3 class="font-bold text-gray-900 mb-2">{{ getItemTitle(item) }}</h3>
+
+                            <!-- Description -->
+                            <p v-if="getItemDescription(item)" class="text-sm text-gray-600 line-clamp-2 mb-3">
+                                {{ getItemDescription(item) }}
+                            </p>
+
+                            <!-- All Fields as Key-Value -->
+                            <div class="space-y-1 text-xs text-gray-500">
+                                <div v-for="[key, value] in getFilteredFields(item)" :key="key" class="truncate">
+                                    <span class="font-semibold">{{ formatKey(key) }}:</span>
+                                    <span class="text-gray-600">{{ formatValue(value) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div v-if="!externalLoading && !externalError && !externalData.length && externalApiUrl" class="text-center py-8 text-gray-400">
+                        <p class="text-lg">🔍 Andmeid ei leitud</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- ── TAB: API TOKEN ── -->
             <div v-if="$page.props.auth.user" v-show="activeTab === 'token'">
 
@@ -368,6 +575,15 @@ const showAddModal = ref(false);
 const copied     = ref(false);
 const baseUrl    = computed(() => window.location.origin);
 
+// ── External API ──
+const externalApiUrl = ref('');
+const externalApiKey = ref('');
+const externalAuthMethod = ref('header');
+const externalAuthHeaderName = ref('X-API-Key');
+const externalData = ref([]);
+const externalLoading = ref(false);
+const externalError = ref('');
+
 // ── Filters ──
 const filters = ref({ ...props.filters });
 let searchTimer = null;
@@ -454,4 +670,148 @@ function revoke() {
     if (!confirm('Kas oled kindel? Vana võti lakkab kohe töötamast.')) return;
     router.post(route('api.token.revoke'));
 }
-</script>w
+
+// ── External API Fetcher ──
+async function fetchExternalData() {
+    externalLoading.value = true;
+    externalError.value = '';
+    externalData.value = [];
+
+    try {
+        // Validate URL
+        new URL(externalApiUrl.value);
+
+        // Build request options
+        const headers = {
+            'Accept': 'application/json',
+        };
+
+        let url = externalApiUrl.value;
+
+        // Add API key based on auth method
+        if (externalApiKey.value) {
+            if (externalAuthMethod.value === 'header') {
+                headers['X-API-Key'] = externalApiKey.value;
+            } else if (externalAuthMethod.value === 'bearer') {
+                headers['Authorization'] = `Bearer ${externalApiKey.value}`;
+            } else if (externalAuthMethod.value === 'custom_header') {
+                headers[externalAuthHeaderName.value] = externalApiKey.value;
+            } else if (externalAuthMethod.value === 'query') {
+                url += (url.includes('?') ? '&' : '?') + `api_key=${encodeURIComponent(externalApiKey.value)}`;
+            }
+        }
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers,
+        });
+
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                externalError.value = 'Vale API võti või puudub juurdepääs.';
+            } else if (response.status === 404) {
+                externalError.value = 'API otspunkt ei leitud.';
+            } else {
+                externalError.value = `API viga: ${response.status} ${response.statusText}`;
+            }
+            return;
+        }
+
+        const data = await response.json();
+
+        // Handle different response formats
+        let items = [];
+        if (Array.isArray(data)) {
+            items = data;
+        } else if (data.data && Array.isArray(data.data)) {
+            items = data.data;
+        } else if (data.results && Array.isArray(data.results)) {
+            items = data.results;
+        } else if (data.items && Array.isArray(data.items)) {
+            items = data.items;
+        } else if (typeof data === 'object' && data !== null) {
+            // If it's a single object, wrap it
+            items = [data];
+        }
+
+        if (items.length === 0) {
+            externalError.value = 'Andmeid ei leitud.';
+            return;
+        }
+
+        externalData.value = items;
+    } catch (error) {
+        if (error instanceof TypeError) {
+            externalError.value = 'Vale URL formaat.';
+        } else {
+            externalError.value = `Viga: ${error.message}`;
+        }
+    } finally {
+        externalLoading.value = false;
+    }
+}
+
+function clearExternalData() {
+    externalApiUrl.value = '';
+    externalApiKey.value = '';
+    externalData.value = [];
+    externalError.value = '';
+}
+
+function loadExample(url, key, authMethod) {
+    externalApiUrl.value = url;
+    externalApiKey.value = key;
+    externalAuthMethod.value = authMethod;
+}
+
+// Helper functions
+function getItemTitle(item) {
+    return item.title || item.name || item.label || item.id || 'Item';
+}
+
+function getItemDescription(item) {
+    return item.description || item.desc || item.bio || item.content || '';
+}
+
+function getImageUrl(item) {
+    let imageField = item.image || item.image_url || item.picture || item.photo || '';
+    if (imageField && !imageField.startsWith('http')) {
+        return 'https://hajusrakendused-main-pm8ido.laravel.cloud' + imageField;
+    }
+    return imageField;
+}
+
+function getFilteredFields(item) {
+    const ignore = ['id', 'title', 'name', 'description', 'desc', 'image', 'image_url', 'picture', 'photo', 'bio', 'content', 'user', 'created_at', 'updated_at'];
+    const result = {};
+
+    for (const [key, value] of Object.entries(item)) {
+        if (!ignore.includes(key) && value !== null && value !== undefined) {
+            // Include objects too, just stringify them
+            if (typeof value === 'object') {
+                if (Array.isArray(value)) {
+                    result[key] = `[Array with ${value.length} items]`;
+                } else {
+                    result[key] = JSON.stringify(value).substring(0, 50);
+                }
+            } else {
+                result[key] = value;
+            }
+        }
+    }
+
+    // Return first 5 fields as array of [key, value] pairs
+    return Object.entries(result).slice(0, 5);
+}
+
+function formatKey(key) {
+    if (typeof key !== 'string') return String(key);
+    return key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
+}
+
+function formatValue(value) {
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (typeof value === 'number') return value.toString();
+    return String(value).substring(0, 50);
+}
+</script>

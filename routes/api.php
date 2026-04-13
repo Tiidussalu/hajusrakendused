@@ -3,6 +3,7 @@
 use App\Http\Controllers\FilmController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\WeatherController;
+use App\Http\Controllers\ExternalApiController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -31,6 +32,9 @@ Route::prefix('v1')->group(function () {
 
     // Ilmaandmete API
     Route::get('/weather',      [WeatherController::class, 'apiWeather'])->name('api.weather');
+
+    // Välise API proxy
+    Route::get('/external/sharks', [ExternalApiController::class, 'getSharks'])->name('api.external.sharks');
 });
 
 // Backwards-compatible aliases

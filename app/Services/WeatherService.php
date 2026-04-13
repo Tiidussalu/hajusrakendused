@@ -43,6 +43,10 @@ class WeatherService
 
             if ($response->failed()) {
                 $body = $response->json();
+                if ($response->status() === 401) {
+                    \Log::error('OpenWeatherMap: Invalid API key', ['message' => $body['message'] ?? '']);
+                    throw new \Exception('OpenWeatherMap API key is invalid or expired');
+                }
                 throw new \Exception($body['message'] ?? "HTTP {$response->status()}");
             }
 

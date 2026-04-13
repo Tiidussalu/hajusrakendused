@@ -110,8 +110,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, watch } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { ref, onMounted, reactive } from 'vue';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({
@@ -285,37 +286,24 @@ function addLeafletMarker(map, L, markerData) {
 }
 
 onMounted(() => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(link);
+    leafletInstance = L;
 
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.onload = () => {
-        const L = window.L;
-        leafletInstance = L;
+    const map = L.map('map').setView([58.8, 25.0], 7);
 
-        const map = L.map('map').setView([58.8, 25.0], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+    }).addTo(map);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19,
-        }).addTo(map);
+    mapInstance = map;
 
-        mapInstance = map;
+    localMarkers.value.forEach(m => addLeafletMarker(map, L, m));
 
-        // Add existing markers
-        localMarkers.value.forEach(m => addLeafletMarker(map, L, m));
-
-        // Click to add
-        map.on('click', (e) => {
-            openAddModal(
-                e.latlng.lat.toFixed(7),
-                e.latlng.lng.toFixed(7)
-            );
-        });
-    };
-    document.head.appendChild(script);
+    map.on('click', (e) => {
+        openAddModal(
+            e.latlng.lat.toFixed(7),
+            e.latlng.lng.toFixed(7)
+        );
+    });
 });
 </script>
